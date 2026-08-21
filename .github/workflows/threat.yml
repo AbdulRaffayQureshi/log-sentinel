@@ -1,0 +1,14 @@
+name: 🛡️ Threat Intel Tracker
+on: [workflow_dispatch]
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install jq zsh curl -y
+      - env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          API_URL: "https://urlhaus.abuse.ch/downloads/csv_recent/"
+        run: |
+          mkdir -p logs
+          ./bin/fetch_data.sh && source ./bin/parsers/threat.sh && ./bin/notify_discord.sh
