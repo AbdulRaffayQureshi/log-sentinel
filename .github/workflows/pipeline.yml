@@ -3,13 +3,13 @@ name: Sentinel Auto-Analyzer
 on:
   schedule:
     # Runs every night at midnight local time (19:00 UTC)
-    - cron: '0 19 * * *' 
+    - cron: '0 19 * * *'
   workflow_dispatch:    # This adds a "Run Workflow" button in GitHub
 
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -31,11 +31,15 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           chmod +x bin/*.sh
-          
+
           # Create Kaggle config securely in the cloud runner
           mkdir -p ~/.kaggle
           echo "{\"username\":\"$KAGGLE_USERNAME\",\"key\":\"$KAGGLE_KEY\"}" > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
+          
+          # Create the exact directories that our scripts look for
+          mkdir -p $HOME/projects/log-sentinel/logs
+          mkdir -p $HOME/projects/log-sentinel/reports
           
           # Run the pipeline
           ./bin/fetch_data.sh
@@ -43,4 +47,4 @@ jobs:
           ./bin/notify_discord.sh
           
       - name: Push Report to GitHub Summary
-        run: cat reports/report_*.md >> $GITHUB_STEP_SUMMARY
+        run: cat $HOME/projects/log-sentinel/reports/report_*.md >> $GITHUB_STEP_SUMMARY
