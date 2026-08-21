@@ -1,6 +1,6 @@
-TOTAL=$(grep -v "^#" logs/app.log | wc -l)
-ONLINE=$(grep -v "^#" logs/app.log | grep -i "online" | wc -l)
-TOP=$(grep -v "^#" logs/app.log | awk -F',' '{print $6}' | tr -d '"' | sort | uniq -c | sort -nr | head -n 3)
+TOTAL=$(grep -v "^#" logs/app.log | wc -l || echo "0")
+ONLINE=$(grep -v "^#" logs/app.log | grep -i "online" | wc -l || echo "0")
+TOP=$(grep -v "^#" logs/app.log | awk -F',' '{print $6}' | tr -d '"' | sort | uniq -c | sort -nr | head -n 3 || echo "No tags found")
 export PIPELINE_NAME="Threat Intelligence Feed"
 export METRIC_1_NAME="Total Malicious URLs"; export METRIC_1_VAL="$TOTAL"
 export METRIC_2_NAME="Active Threats"; export METRIC_2_VAL="$ONLINE"
