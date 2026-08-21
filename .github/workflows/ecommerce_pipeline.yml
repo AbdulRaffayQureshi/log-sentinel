@@ -1,0 +1,32 @@
+name: 🛒 E-Commerce Sentinel
+on:
+  schedule:
+    - cron: '0 19 * * *'  # Runs at 12:00 AM PKT
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: |
+          pip install kaggle
+          sudo apt-get update && sudo apt-get install jq zsh -y
+      - name: Execute Pipeline
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          KAGGLE_DATASET: "eliasdabbas/web-server-access-logs"
+          DATA_SOURCE_NAME: "Iranian E-Commerce Logs"
+        run: |
+          chmod +x bin/*.sh
+          mkdir -p ~/.kaggle && echo "{\"username\":\"$KAGGLE_USERNAME\",\"key\":\"$KAGGLE_KEY\"}" > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+          mkdir -p $HOME/projects/log-sentinel/logs $HOME/projects/log-sentinel/reports
+          ./bin/fetch_data.sh && source ./bin/sentinel.sh && ./bin/notify_discord.sh
+      - name: Push Report
+        run: cat $HOME/projects/log-sentinel/reports/report_*.md >> $GITHUB_STEP_SUMMARY

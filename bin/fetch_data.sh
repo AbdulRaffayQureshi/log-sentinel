@@ -2,15 +2,19 @@
 set -euo pipefail
 
 LOG_DIR="$HOME/projects/log-sentinel/logs"
-DATASET="eliasdabbas/web-server-access-logs"
+# Grab dataset from GitHub Actions, default to the big one if empty
+DATASET="${KAGGLE_DATASET:-eliasdabbas/web-server-access-logs}"
 
-echo "[*] Fetching latest server logs from Kaggle..."
+echo "[*] Fetching logs for $DATASET..."
 
-# Download and unzip the dataset directly into the logs folder
+# Clear out any old logs so pipelines don't mix data
+rm -f "$LOG_DIR"/*
+
+# Download and unzip
 kaggle datasets download -d $DATASET -p "$LOG_DIR" --unzip
 
-# The dataset extracts a file named 'access.log'. Rename it for our pipeline.
-mv "$LOG_DIR"/access.log "$LOG_DIR/app.log" 2>/dev/null || true
+# Automatically find the extracted file and rename it to app.log
+DOWNLOADED_FILE=$(ls "$LOG_DIR" | head -n 1)
+mv "$LOG_DIR/$DOWNLOADED_FILE" "$LOG_DIR/app.log"
 
-echo "[*] Data successfully downloaded to $LOG_DIR/app.log"
-
+echo "[+] Data successfully downloaded to $LOG_DIR/app.log"
