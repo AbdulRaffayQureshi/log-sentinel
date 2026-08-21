@@ -22,7 +22,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install kaggle
-          sudo apt-get install jq -y
+          sudo apt-get update && sudo apt-get install jq zsh -y
 
       - name: Execute Pipeline
         env:
