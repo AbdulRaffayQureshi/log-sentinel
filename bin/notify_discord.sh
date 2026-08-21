@@ -1,7 +1,6 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-# Read webhook URL from environment variables
 WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
 
 if [[ -z "$WEBHOOK_URL" ]]; then
@@ -9,17 +8,36 @@ if [[ -z "$WEBHOOK_URL" ]]; then
     exit 0
 fi
 
-# Only send an alert if there are 500 Critical Errors
 if [[ ${ERROR_500_COUNT:-0} -gt 0 ]]; then
-    echo "[*] Critical errors detected! Sending Discord alert..."
+    echo "[*] Critical errors detected! Sending Discord embed..."
     
-    # Read the first 15 lines of the report to send as the message preview
-    REPORT_PREVIEW=$(head -n 15 "$REPORT_FILE")
+    # Get current timestamp in ISO 8601 format for Discord
+    TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     
-    # Construct the JSON payload using jq to safely escape string characters for curl
-    JSON_PAYLOAD=$(jq -n --arg content "🔥 **CRITICAL SERVER ALERT** 🔥\n$REPORT_PREVIEW" '{content: $content}')
+    # Build a professional Discord Rich Embed
+    JSON_PAYLOAD=$(jq -n \
+      --arg source_name "${SOURCE_NAME:-Unknown Source}" \
+      --arg total "$TOTAL_LINES" \
+      --arg err404 "$ERROR_404_COUNT" \
+      --arg err500 "$ERROR_500_COUNT" \
+      --arg ips "$TOP_IPS" \
+      --arg ts "$TIMESTAMP" \
+      '{
+        content: "🔥 **CRITICAL SERVER ALERT** 🔥",
+        embeds: [{
+          title: ("🚨 Sentinel Incident Report: " + $source_name),
+          color: 16711680,
+          fields: [
+            { name: "📊 Total Logs", value: $total, inline: true },
+            { name: "⚠️ 404 Errors", value: $err404, inline: true },
+            { name: "🛑 500 Errors", value: $err500, inline: true },
+            { name: "🕵️ Top IPs Causing 404s", value: ("```text\n" + $ips + "\n```"), inline: false }
+          ],
+          footer: { text: "Automated Sentinel Agent" },
+          timestamp: $ts
+        }]
+      }')
     
-    # Send the HTTP POST request to Discord via curl
     curl -H "Content-Type: application/json" -d "$JSON_PAYLOAD" "$WEBHOOK_URL"
     echo -e "\n[+] Discord notification sent."
 else

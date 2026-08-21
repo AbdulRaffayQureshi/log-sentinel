@@ -29,6 +29,7 @@ jobs:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DATA_SOURCE_NAME: "Iranian E-Commerce Logs"
         run: |
           chmod +x bin/*.sh
 
