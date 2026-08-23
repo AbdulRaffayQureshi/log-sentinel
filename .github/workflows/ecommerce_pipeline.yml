@@ -26,7 +26,7 @@ jobs:
           chmod +x bin/*.sh
           mkdir -p ~/.kaggle && echo "{\"username\":\"$KAGGLE_USERNAME\",\"key\":\"$KAGGLE_KEY\"}" > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
-          mkdir -p $HOME/projects/log-sentinel/logs $HOME/projects/log-sentinel/reports
+          mkdir -p logs reports
           ./bin/fetch_data.sh && source ./bin/sentinel.sh && ./bin/notify_discord.sh
       - name: Push Report
-        run: cat $HOME/projects/log-sentinel/reports/report_*.md >> $GITHUB_STEP_SUMMARY
+        run: cat reports/report_*.md >> $GITHUB_STEP_SUMMARY
