@@ -11,7 +11,7 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install jq zsh curl -y
       - env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          API_URL: "https://data.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+          API_URL: "https://api.binance.us/api/v3/ticker/24hr?symbol=BTCUSDT"
         run: |
           mkdir -p logs
           ./bin/fetch_data.sh && source ./bin/parsers/crypto.sh && ./bin/notify_discord.sh
