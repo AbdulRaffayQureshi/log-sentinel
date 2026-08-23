@@ -35,3 +35,4 @@ EOF
 export ERROR_500_COUNT ERROR_404_COUNT TOTAL_LINES TOP_IPS SOURCE_NAME REPORT_FILE
 
 echo "[+] Analysis complete. Report generated at $REPORT_FILE"
+export SEND_ALERT=1

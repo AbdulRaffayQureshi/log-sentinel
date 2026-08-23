@@ -1,5 +1,8 @@
 name: 🛡️ Threat Intel Tracker
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"
 jobs:
   analyze:
     runs-on: ubuntu-latest

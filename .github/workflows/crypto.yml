@@ -1,5 +1,8 @@
 name: 🪙 Crypto Market Alert
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */4 * * *"
 jobs:
   analyze:
     runs-on: ubuntu-latest
