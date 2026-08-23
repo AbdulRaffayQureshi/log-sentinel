@@ -1,38 +1,21 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 set -euo pipefail
 
-LOG_DIR="$HOME/projects/log-sentinel/logs"
-REPORT_DIR="$HOME/projects/log-sentinel/reports"
-TARGET_LOG="$LOG_DIR/app.log"
-TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
-REPORT_FILE="$REPORT_DIR/report_$TIMESTAMP.md"
+LOG_FILE="logs/app.log"
 
-# Grab the dynamic source name, default to "Web Server" if not set
-SOURCE_NAME="${DATA_SOURCE_NAME:-Web Server}"
+# Parse the data
+TOTAL_RECORDS=$(wc -l < "$LOG_FILE" || echo "0")
+ERRORS_404=$(grep -E " (404|400|403) " "$LOG_FILE" | wc -l || echo "0")
+CRITICAL_500=$(grep -E " (500|502|503) " "$LOG_FILE" | wc -l || echo "0")
+TOP_IP=$(awk '{print $1}' "$LOG_FILE" | sort | uniq -c | sort -nr | head -n 1 || echo "None found")
 
-echo "[*] Parsing log file for anomalies..."
-
-TOTAL_LINES=$(wc -l < "$TARGET_LOG")
-ERROR_404_COUNT=$(grep -c " 404 " "$TARGET_LOG" || true)
-ERROR_500_COUNT=$(grep -c " 500 " "$TARGET_LOG" || true)
-
-TOP_IPS=$(grep " 404 " "$TARGET_LOG" | awk '{print $1}' | sort | uniq -c | sort -nr | head -n 3 || true)
-
-cat << EOF > "$REPORT_FILE"
-# 🚨 Sentinel Incident Report: $SOURCE_NAME
-- **Time:** $(date -u)
-- **Total Logs Analyzed:** $TOTAL_LINES
-- **404 Errors:** $ERROR_404_COUNT
-- **500 Critical Errors:** $ERROR_500_COUNT
-
-## Top IPs Causing 404 Errors
-\`\`\`text
-$TOP_IPS
-\`\`\`
-EOF
-
-# Export EVERYTHING for the new Discord Embed
-export ERROR_500_COUNT ERROR_404_COUNT TOTAL_LINES TOP_IPS SOURCE_NAME REPORT_FILE
-
-echo "[+] Analysis complete. Report generated at $REPORT_FILE"
+# Export the variables for the Discord script
+export PIPELINE_NAME="E-Commerce / Platform Sentinel"
+export METRIC_1_NAME="Logs Ingested"; export METRIC_1_VAL="$TOTAL_RECORDS"
+export METRIC_2_NAME="4xx Errors";    export METRIC_2_VAL="$ERRORS_404"
+export METRIC_3_NAME="5xx Crashes";   export METRIC_3_VAL="$CRITICAL_500"
+export MAIN_CONTENT="Top Offending IP:\n$TOP_IP"
 export SEND_ALERT=1
+
+# Fire the notification
+./bin/notify_discord.sh
